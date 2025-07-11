@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { io } from "socket.io-client";
+import { createSocket } from "../socketHandler.js";
 
 const authStore = create((set, get) => ({
   authUser: null,
@@ -10,30 +10,11 @@ const authStore = create((set, get) => ({
     set({ authStore: data });
   },
   connectSocket: async () => {
-    const { authUser, socket } = get();
-
-    console.log("connect socket");
-    // if (authUser && !socket) {
-    const socketConnection = io("http://localhost:3000", {
-      transports: ["websocket"],
-      withCredentials: true,
-    });
-    socketConnection.connect();
-
-    await new Promise((resolve, reject) => {
-      socketConnection.on("connect", () => {
-        console.log("CONNECTED:", socketConnection.id);
-        set({ socket: socketConnection, isSocketConnected: true });
-        resolve(true);
-      });
-
-      socketConnection.on("connect_error", (err) => {
-        console.error("Connect error:", err.message);
-        reject(err);
-      });
-    });
-
-    //
+    const socket = await createSocket();
+    console.log(socket);
+    if (socket) {
+      set({ socket: socket, isSocketConnected: true });
+    }
   },
   disconnectSocket: () => {
     const { socket } = get();

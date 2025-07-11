@@ -15,11 +15,10 @@ const io = new SocketServer(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("heloooo");
   console.log(socket.id, " connected ");
 
   socket.on("terminal:write", (data) => {
-    console.log(data, "\n");
+    console.log(data);
     socket.emit("terminal:data", data);
   });
 
