@@ -1,6 +1,26 @@
 import express from "express";
 import http from "http";
 import { Server as SocketServer } from "socket.io";
+import os from "os";
+import pty from "node-pty";
+
+var shell = os.platform() === "win32" ? "powershell.exe" : "bash";
+
+var ptyProcess = pty.spawn(shell, [], {
+  name: "xterm-color",
+  cols: 80,
+  rows: 30,
+  cwd: `${process.env.INIT_CWD}/src`,
+  env: process.env,
+});
+
+// ptyProcess.onData((data) => {
+//   process.stdout.write(data);
+// });
+
+// ptyProcess.write("ls\r");
+// ptyProcess.resize(100, 40);
+// ptyProcess.write("ls\r");
 
 const app = express();
 
@@ -15,11 +35,16 @@ const io = new SocketServer(server, {
 });
 
 io.on("connection", (socket) => {
+  //
   console.log(socket.id, " connected ");
 
-  socket.on("terminal:write", (data) => {
-    console.log(data);
+  ptyProcess.onData((data) => {
+    //
     socket.emit("terminal:data", data);
+  });
+
+  socket.on("terminal:write", (data) => {
+    ptyProcess.write(data);
   });
 
   socket.on("disconnect", () => {

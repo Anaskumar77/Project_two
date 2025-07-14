@@ -5,7 +5,7 @@ import authStore from "./store/authStore.js";
 export const createSocket = () => {
   //
 
-  const socket = io("http://localhost:3000", {
+  const socket = io("http://localhost:9000", {
     transports: ["websocket"],
     withCredentials: true,
   });
@@ -31,9 +31,3 @@ export const TerminalWrite = (data) => {
   if (!socket) return;
   socket.emit("terminal:write", data);
 };
-
-// export const TerminalWrite = () => {
-//   const { socket } = authStore.getState();
-//   if (!socket) return;
-//   socket.emit("terminal:write");
-// };

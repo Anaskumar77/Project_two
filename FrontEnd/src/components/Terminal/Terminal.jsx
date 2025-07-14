@@ -8,31 +8,34 @@ import { TerminalWrite } from "../../lib/socketHandler.js";
 const Terminal = () => {
   //
   const socket = authStore((s) => s.socket);
-  console.log(socket);
-  // const { socket } = authStore();
-  const isSocketConnected = authStore((s) => s.isSocketConnected);
-  console.log(isSocketConnected);
+  // const isSocketConnected = authStore((s) => s.isSocketConnected);
 
   //
 
   const terminalRef = useRef();
+  const xtermRef = useRef();
   const cmdRendered = useRef(false);
-  const terminal = new XTerminal({
-    cursorBlink: true,
-    theme: {
-      background: "#1e1e1e",
-      foreground: "#8800ff",
-    },
-  });
-  const fitAddon = new FitAddon();
 
   useEffect(() => {
+    //
+
     if (cmdRendered.current) return;
+
+    const terminal = new XTerminal({
+      cursorBlink: true,
+      theme: {
+        background: "#1e1e1e",
+        foreground: "#8800ff",
+      },
+    });
+    const fitAddon = new FitAddon();
 
     terminal.open(terminalRef.current);
     terminal.focus();
     terminal.loadAddon(fitAddon);
     fitAddon.fit();
+
+    xtermRef.current = terminal;
     cmdRendered.current = true;
 
     terminal.onData((data) => {
@@ -44,11 +47,20 @@ const Terminal = () => {
 
   //
 
-  socket?.on("terminal:data", (data) => {
-    console.log("data kiti : ", data);
-  });
+  useEffect(() => {
+    if (!socket || !xtermRef?.current) return;
 
-  //
+    const dataIncoming = (data) => {
+      console.log(data);
+      xtermRef.current.write(data);
+    };
+
+    socket.on("terminal:data", dataIncoming);
+
+    return () => {
+      socket.off("terminal:data", dataIncoming);
+    };
+  }, [socket]);
 
   return (
     <div style={{ width: "100dvw", height: "50dvh" }}>
